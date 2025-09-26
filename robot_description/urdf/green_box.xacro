@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:if value="${green_box}">
+
+        <link name="moving_link">
+            <visual>
+                <geometry>
+                    <box size="0.1 0.1 0.1" />
+                </geometry>
+                <material name="green">
+                    <color rgba="0.0 1.0 0.0 1.0" />
+                </material>
+            </visual>
+        </link>
+
+        <!-- Movable joint: rotates the green box around Z axis -->
+        <joint name="base_to_moving_joint" type="revolute">
+            <parent link="base_link" />
+            <child link="moving_link" />
+            <!-- Place the moving_link slightly to the side and above the base -->
+            <origin xyz="0 0 0.15" rpy="0 0 0" />
+            <!-- Rotation axis Z -->
+            <axis xyz="0 0 1" />
+            <!-- Limits: +/- 90 degrees -->
+            <limit effort="10" velocity="1.0" lower="-1.57" upper="1.57" />
+        </joint>
+
+    </xacro:if>
+
+</robot>

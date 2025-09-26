@@ -1,93 +1,53 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import LaunchConfiguration, Command
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.parameter_descriptions import ParameterValue
 
 PKG_NAME = "robot_description"
 PKG_SHARE = get_package_share_directory(PKG_NAME)
 
-DEFAULT_MODEL_PATH = os.path.join(PKG_SHARE, "urdf", "robot.urdf.xacro")
-DEFAULT_RVIZ_CONFIG_PATH = os.path.join(PKG_SHARE, "config", "robot_view.rviz")
+DEFAULT_RVIZ_CONFIG = os.path.join(PKG_SHARE, "config", "robot_view.rviz")
 
-DEFAULT_RVIZ = "true"                   # Launch RViz by default
-DEFAULT_JSP_GUI = "true"                # Use GUI sliders? (false = normal joint_state_publisher)
-DEFAULT_JSP = "true"                    # Launch joint_state_publisher if GUI is disabled
-
+DEFAULT_JSP_GUI = "true"         
+DEFAULT_USE_SIM_TIME = "false"
+DEFAULT_RVIZ = "true"
 
 def generate_launch_description():
+    declared_arguments = [
+        DeclareLaunchArgument("use_sim_time", default_value=DEFAULT_USE_SIM_TIME),
+        DeclareLaunchArgument("jsp_gui", default_value=DEFAULT_JSP_GUI),
+        DeclareLaunchArgument("rviz", default_value=DEFAULT_RVIZ),
+        DeclareLaunchArgument(
+            "rviz_config",
+            default_value=DEFAULT_RVIZ_CONFIG,
+            description="RViz config file"
+        ),
+    ]
 
-    model_arg = DeclareLaunchArgument(
-        "model",
-        default_value=DEFAULT_MODEL_PATH,
-        description="Absolute path to robot URDF/Xacro file"
-    )
-
-    rviz_arg = DeclareLaunchArgument(
-        "rviz",
-        default_value=DEFAULT_RVIZ,
-        choices=["true", "false"],
-        description="Launch RViz?"
-    )
-
-    rviz_config_arg = DeclareLaunchArgument(
-        "rviz_config",
-        default_value=DEFAULT_RVIZ_CONFIG_PATH,
-        description="Absolute path to RViz config file"
-    )
-
-    jsp_gui_arg = DeclareLaunchArgument(
-        "jsp_gui",
-        default_value=DEFAULT_JSP_GUI,
-        choices=["true", "false"],
-        description="Use joint_state_publisher_gui instead of joint_state_publisher"
-    )
-
-    robot_state_publisher_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        name="robot_state_publisher",
-        output="screen",
-        parameters=[{
-            "robot_description": ParameterValue(
-                Command(["xacro ", LaunchConfiguration("model")]),
-                value_type=str
-            )
-        }],
-    )
-
-    joint_state_publisher_node = Node(
-        package="joint_state_publisher",
-        executable="joint_state_publisher",
-        name="joint_state_publisher",
-        condition=UnlessCondition(LaunchConfiguration("jsp_gui")),
-    )
-
-    joint_state_publisher_gui_node = Node(
-        package="joint_state_publisher_gui",
-        executable="joint_state_publisher_gui",
-        name="joint_state_publisher_gui",
-        condition=IfCondition(LaunchConfiguration("jsp_gui")),
+    # Include robot_description.launch.py
+    robot_description_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([PKG_SHARE, "launch", "robot_description.launch.py"])
+        ),
+        launch_arguments={
+            "use_sim_time": LaunchConfiguration("use_sim_time"),
+            "jsp_gui": LaunchConfiguration("jsp_gui"),
+        }.items(),
     )
 
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
-        name="rviz2",
         arguments=["-d", LaunchConfiguration("rviz_config")],
+        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
         condition=IfCondition(LaunchConfiguration("rviz")),
     )
 
-    return LaunchDescription([
-        model_arg,
-        rviz_arg,
-        rviz_config_arg,
-        jsp_gui_arg,
-        robot_state_publisher_node,
-        joint_state_publisher_node,
-        joint_state_publisher_gui_node,
+    return LaunchDescription(declared_arguments + [
+        robot_description_launch,
         rviz_node,
     ])
