@@ -38,7 +38,7 @@ ARGUMENTS = [
     DeclareLaunchArgument(
         "rviz_config",
         default_value=os.path.join(
-            get_package_share_directory("robot_description"), "rviz", "robot_view.rviz"
+            get_package_share_directory("robot_description"), "config", "robot_view.rviz"
         ),
         description="Rviz config.",
     ),
