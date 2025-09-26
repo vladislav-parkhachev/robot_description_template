@@ -1,0 +1,2 @@
+### A ROS 2 package template for robot description.  
+#### This repository provides a minimal structure for creating and sharing robot description packages, including URDF/Xacro models, meshes, configuration files, and launch files for visualization in RViz2.

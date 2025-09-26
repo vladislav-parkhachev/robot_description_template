@@ -8,10 +8,10 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(urdf REQUIRED)
-find_package(xacro REQUIRED)
+find_package(xacro REQUIRED) 
 
 install(
-  DIRECTORY сonfig 
+  DIRECTORY сonfig launch meshes urdf
   DESTINATION share/${PROJECT_NAME}
 )
 

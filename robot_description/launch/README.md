@@ -1,0 +1,1 @@
+### This folder contains launch files for starting the robot description and visualization in RViz.

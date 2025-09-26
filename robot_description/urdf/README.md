@@ -1,0 +1,1 @@
+### This folder contains URDF/Xacro files describing the robot.

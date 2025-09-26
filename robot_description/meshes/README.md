@@ -1,0 +1,1 @@
+### This folder contains 3D models (STL/DAE) used in the URDF for visualization and collisions.
