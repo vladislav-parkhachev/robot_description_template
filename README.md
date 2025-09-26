@@ -3,6 +3,8 @@
 This repository provides a **ROS 2 template package** for creating robot description packages (`*_description`).  
 It includes a minimal URDF/Xacro, RViz configuration, launch files, config file, and Docker support through a `Makefile`.
 
+![Boxes Preview](assets/boxes_rviz.png)
+
 ---
 
 ## Branches
