@@ -1,2 +1,2 @@
 add_rplidar_a2: 'true'
-add_realsense_d435: 'false'
+add_realsense_d435: 'true'
