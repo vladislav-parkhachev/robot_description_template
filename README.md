@@ -85,7 +85,15 @@ docker build -t robot_description:latest .
 ```bash
 xhost +local:docker
 
-docker run -it --rm     --net=host     -e DISPLAY=$DISPLAY     -e QT_X11_NO_MITSHM=1     -v /tmp/.X11-unix:/tmp/.X11-unix:rw     robot_description:latest     ros2 launch robot_description robot_view.launch.py
+docker run -it --rm \
+    --net=host \
+    -e DISPLAY=$DISPLAY \
+    -e QT_X11_NO_MITSHM=1 \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+    robot_description:latest \
+    ros2 launch robot_description robot_view.launch.py
+
+xhost -local:docker
 ```
 
 👉 This will start RViz inside the container and show the minimal robot model.
