@@ -3,6 +3,8 @@
 This repository provides a **ROS 2 description package** for the TurtleBot3 Burger robot.  
 It includes URDF/Xacro, RViz configuration, launch files, a component config, and Docker support through a `Makefile`.
 
+![TurtleBot3 Burger Preview](assets/turtlebot3_burger_rviz.png)
+
 ---
 
 ## Branches
