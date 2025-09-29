@@ -39,6 +39,12 @@ def generate_launch_description():
             choices=["true", "false"],
             description="Launch joint_state_publisher_gui if true"
         ),
+        DeclareLaunchArgument(
+            "simulation",
+            default_value="false",
+            choices=["true", "false"],
+            description="simulation_mode",
+    ),
     ]
 
     # Add launch arguments from YAML
@@ -55,6 +61,7 @@ def generate_launch_description():
     xacro_command = ["xacro ", LaunchConfiguration("model")]
     for param in yaml_params.keys():
         xacro_command.extend([f" {param}:=", LaunchConfiguration(param)])
+    xacro_command.extend([" simulation:=", LaunchConfiguration("simulation")])
 
     # Robot State Publisher
     robot_state_publisher_node = Node(

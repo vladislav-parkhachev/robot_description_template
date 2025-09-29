@@ -156,7 +156,7 @@
                 <ros>
                     <namespace>$(arg namespace)</namespace>
                 </ros>
-                <parameters>$(find robot_simulation)/config/diff_drive_controller.yaml</parameters>
+                <parameters>$(find robot_description)/config/diff_drive_controller.yaml</parameters>
             </plugin>
         </gazebo>
 
