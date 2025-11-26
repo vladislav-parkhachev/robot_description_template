@@ -1,19 +1,32 @@
-.PHONY: run_robot_view
+.PHONY: build_robot_description_view \
+		run_robot_description_view \
+		stop_robot_description_view \
+		build_robot_description_core \
+		run_robot_description_core \
+		stop_robot_description_core \
+		connect_robot_description_view \
+		connect_robot_description_core
 
-IMAGE_NAME=robot_description
-TAG=latest
+build_robot_description_view:
+	@docker compose build robot_description_view
 
-run_robot_view:
-	xhost +local:docker
+run_robot_description_view:
+	@docker compose up robot_description_view
 
-	docker build -t $(IMAGE_NAME):$(TAG) .
+stop_robot_description_view:
+	@docker compose stop robot_description_view
 
-	docker run -it --rm \
-		--net=host \
-		-e DISPLAY=$$DISPLAY \
-		-e QT_X11_NO_MITSHM=1 \
-		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-		$(IMAGE_NAME):$(TAG) \
-		ros2 launch robot_description robot_view.launch.py
+build_robot_description_core:
+	@docker compose build robot_description_core
 
-	xhost -local:docker
+run_robot_description_core:
+	@docker compose up robot_description_core
+
+stop_robot_description_core:
+	@docker compose stop robot_description_core
+
+connect_robot_description_container:
+	@docker exec -it robot_description_view bash
+
+connect_robot_description_core_container:
+	@docker exec -it robot_description_core bash

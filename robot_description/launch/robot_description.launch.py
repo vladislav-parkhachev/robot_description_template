@@ -1,96 +1,104 @@
 import os
+import xacro
 import yaml
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.conditions import IfCondition, UnlessCondition
-from launch.substitutions import LaunchConfiguration, Command
-from launch_ros.actions import Node
-from launch_ros.parameter_descriptions import ParameterValue
+
 from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.conditions import IfCondition
+from launch.substitutions.launch_configuration import LaunchConfiguration
+from launch_ros.actions import Node
+from pathlib import Path
 
-PKG_NAME = "robot_description"
-PKG_SHARE = get_package_share_directory(PKG_NAME)
-
-DEFAULT_MODEL_PATH = os.path.join(PKG_SHARE, "urdf", "turtlebot3_burger.urdf.xacro")
-DEFAULT_CONFIG_PATH = os.path.join(PKG_SHARE, "config", "robot_components.yaml")
-
-DEFAULT_JSP_GUI = "false"         
-DEFAULT_USE_SIM_TIME = "false"
-
-def generate_launch_description():
-    # Load YAML parameters
-    with open(DEFAULT_CONFIG_PATH, "r") as f:
-        yaml_params = yaml.safe_load(f)
-
-    declared_arguments = [
-        DeclareLaunchArgument(
-            "model",
-            default_value=DEFAULT_MODEL_PATH,
-            description="Absolute path to robot URDF/Xacro file"
-        ),
-        DeclareLaunchArgument(
-            "use_sim_time",
-            default_value=DEFAULT_USE_SIM_TIME,
-            description="Use simulation clock if true"
-        ),
-        DeclareLaunchArgument(
-            "jsp_gui",
-            default_value=DEFAULT_JSP_GUI,
-            choices=["true", "false"],
-            description="Launch joint_state_publisher_gui if true"
-        ),
-        DeclareLaunchArgument(
-            "simulation",
-            default_value="false",
-            choices=["true", "false"],
-            description="simulation_mode",
+ARGUMENTS = [
+    DeclareLaunchArgument(
+        "rviz",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start rviz.",
     ),
-    ]
+    DeclareLaunchArgument(
+        "joint_state_publisher",
+        default_value="true",
+        choices=["true", "false"],
+        description="Start joint_state_publisher.",
+    ),
+    DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="false",
+        choices=["true", "false"],
+        description="use_sim_time",
+    ),
+    DeclareLaunchArgument(
+        "simulation",
+        default_value="false",
+        choices=["true", "false"],
+        description="simulation_mode",
+    ),
+    DeclareLaunchArgument(
+        "rviz_config",
+        default_value=os.path.join(
+            get_package_share_directory("robot_description"), "rviz", "robot_view.rviz"
+        ),
+        description="Rviz config.",
+    ),
+]
 
-    # Add launch arguments from YAML
-    for param, value in yaml_params.items():
-        declared_arguments.append(
-            DeclareLaunchArgument(
-                param,
-                default_value=str(value),
-                description=f"Xacro parameter: {param}"
-            )
-        )
+def launch_setup(context):
+    config_sim = LaunchConfiguration('simulation').perform(context) # Here you'll get the runtime config value
+    pkg_turtlebot3_description = get_package_share_directory("robot_description")
 
-    # Build xacro command with substitutions
-    xacro_command = ["xacro ", LaunchConfiguration("model")]
-    for param in yaml_params.keys():
-        xacro_command.extend([f" {param}:=", LaunchConfiguration(param)])
-    xacro_command.extend([" simulation:=", LaunchConfiguration("simulation")])
+    xacro_file = os.path.join(
+        pkg_turtlebot3_description, "urdf", "turtlebot3_burger.urdf.xacro"
+    )
 
-    # Robot State Publisher
-    robot_state_publisher_node = Node(
+    conf_file = os.path.join(
+        pkg_turtlebot3_description, "config", "robot_components.yaml"
+    )
+
+    config_xacro = yaml.safe_load(Path(conf_file).read_text())
+    config_xacro['simulation'] = config_sim
+    doc = xacro.process_file(xacro_file, mappings=config_xacro)
+    robot_description = doc.toprettyxml(indent="  ")
+
+    robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        name="robot_state_publisher",
         output="screen",
-        parameters=[{
-            "robot_description": ParameterValue(Command(xacro_command), value_type=str),
-            "use_sim_time": LaunchConfiguration("use_sim_time")
-        }],
+        parameters=[
+            {"use_sim_time": LaunchConfiguration("use_sim_time")},
+            {"robot_description": robot_description},
+        ],
     )
 
-    # Joint State Publisher (обычный)
-    joint_state_publisher_node = Node(
+    return [robot_state_publisher]
+
+def generate_launch_description():
+    opfunc = OpaqueFunction(function = launch_setup)
+
+    joint_state_publisher = Node(
         package="joint_state_publisher",
         executable="joint_state_publisher",
-        condition=UnlessCondition(LaunchConfiguration("jsp_gui")),
+        name="joint_state_publisher",
+        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
+        output="screen",
+        condition=IfCondition(LaunchConfiguration("joint_state_publisher")),
     )
 
-    # Joint State Publisher GUI
-    joint_state_publisher_gui_node = Node(
-        package="joint_state_publisher_gui",
-        executable="joint_state_publisher_gui",
-        condition=IfCondition(LaunchConfiguration("jsp_gui")),
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        arguments=["-d", LaunchConfiguration("rviz_config")],
+        parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
+        output="screen",
+        condition=IfCondition(LaunchConfiguration("rviz")),
     )
 
+    ld = LaunchDescription(ARGUMENTS)
+    ld.add_action(opfunc)
+    ld.add_action(joint_state_publisher)
+    ld.add_action(rviz_node)
 
-    return LaunchDescription(declared_arguments + [
-        robot_state_publisher_node,
-        joint_state_publisher_node,
-        joint_state_publisher_gui_node,
-    ])
+    return ld

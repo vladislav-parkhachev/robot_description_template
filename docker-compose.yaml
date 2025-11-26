@@ -1,0 +1,42 @@
+services:
+  robot_description_view:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: ${ROS_DISTRO}
+    image: robot_description:${ROS_DISTRO}
+    container_name: robot_description_view
+    network_mode: host
+    runtime: nvidia
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - ROS_DISTRO=${ROS_DISTRO}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+    devices:
+      - /dev/dri:/dev/dri
+    user: "1000:1000"
+    volumes:
+      - ./robot_description/config:/override_config
+    command: bash -c "source /robot_description_ws/install/setup.bash &&
+      exec ros2 launch robot_description robot_view.launch.py"
+  robot_description_core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ROS_DISTRO: ${ROS_DISTRO}
+    image: robot_description:${ROS_DISTRO}
+    container_name: robot_description_core
+    network_mode: host
+    environment:
+      - ROS_DISTRO=${ROS_DISTRO}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+    devices:
+      - /dev/dri:/dev/dri
+    user: "1000:1000"
+    command: bash -c "source /robot_description_ws/install/setup.bash &&
+      exec ros2 launch robot_description robot_description.launch.py"
