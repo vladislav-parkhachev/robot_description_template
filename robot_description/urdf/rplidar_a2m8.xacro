@@ -13,7 +13,7 @@
             <visual>
                 <origin xyz="0.005 0.03 -0.031" rpy="0 0 2.8" />
                 <geometry>
-                    <mesh filename="file://$(find robot_description)/meshes/rplidar_a2m8.stl"
+                    <mesh filename="package://robot_description/meshes/rplidar_a2m8.stl"
                         scale="0.001 0.001 0.001" />
                 </geometry>
                 <material name="dark" />
