@@ -7,7 +7,7 @@
         <visual>
             <origin xyz="-0.032 0 0.0" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://robot_description/meshes/base.stl"
+                <mesh filename="file://$(find robot_description)/meshes/base.stl"
                     scale="0.001 0.001 0.001" />
             </geometry>
             <material name="light_black" />
@@ -16,7 +16,7 @@
         <collision>
             <origin xyz="-0.032 0 0.000" rpy="0 0 0" />
             <geometry>
-                <mesh filename="package://robot_description/meshes/base.stl"
+                <mesh filename="file://$(find robot_description)/meshes/base.stl"
                     scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
@@ -48,7 +48,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="1.57 0 0" />
             <geometry>
-                <mesh filename="package://robot_description/meshes/left_wheel.stl"
+                <mesh filename="file://$(find robot_description)/meshes/left_wheel.stl"
                     scale="0.001 0.001 0.001" />
             </geometry>
             <material name="dark" />
@@ -82,7 +82,7 @@
         <visual>
             <origin xyz="0 0 0" rpy="1.57 0 0" />
             <geometry>
-                <mesh filename="package://robot_description/meshes/right_wheel.stl"
+                <mesh filename="file://$(find robot_description)/meshes/right_wheel.stl"
                     scale="0.001 0.001 0.001" />
             </geometry>
             <material name="dark" />
